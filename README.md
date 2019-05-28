@@ -22,9 +22,12 @@ npm run build --report
 # 服务启动方式
 ``` bash
 # app数据是通过NeteaseCloudMusicApi-master项目获取的
+
 # NeteaseCloudMusicApi-master启动方式，默认启动端口是3000
+
 # install dependencies
 npm install
+
 # serve with hot reload at localhost:3000
 npm run start
 ```
