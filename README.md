@@ -1,6 +1,6 @@
 # fw_music
 
-> 利用网易api做的一个音乐播放器，已部署网站地址：http://music.lifuwei.club
+> 利用网易api做的一个音乐播放器
 
 ## Build Setup
 
