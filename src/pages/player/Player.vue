@@ -113,6 +113,7 @@ import { mapMutations } from "vuex"
 import listItem from "@/components/list-item/list-item2"
 import musicUtil from '@/util/musicTool'
 import commonApi from '@/axios/request.js'
+import api from "@/config/songApi";
 import BScroll from "better-scroll";
 export default {
   name: 'Player',
@@ -186,6 +187,13 @@ export default {
     this.$nextTick(()=>{
       this._initScroll()
     })
+   this.getLyric()
+    
+  },
+  watch:{
+    '$route': function (to, from) {
+      this.getLyric()
+    }
   },
   methods: {
     ...mapMutations(["SET_PLAYER_SATATUS","SET_CURRENT_SONG","SET_CURRENT_LISTS","NEXT","PREV","SET_CURRENT_TIME","SET_CURRENT_PROCESS","SET_IS_LIST_LOOP","REMOVE_FORM_LISTS"]),
@@ -194,6 +202,11 @@ export default {
         //开启点击事件 默认为false
         click:true
       })
+    },
+    getLyric(){
+       this.$axios.get(`${api.lyric}${this.current_song.id}`).then((response) => {
+        console.log(response)
+      });
     },
     setPlayModel(e){
       //  0==列表循环播放 1==单曲循环 2==列表顺序播放，但是不循环
@@ -472,7 +485,7 @@ export default {
         position absolute
         top 0
         left 0
-        font-size 22px
+        font-size 24px
         word-spacing 6px
         text-align center
         color #fff
@@ -499,7 +512,7 @@ export default {
         position absolute
         top 0
         right 0
-        font-size 22px
+        font-size 24px
         word-spacing 6px
         text-align center
         color #fff

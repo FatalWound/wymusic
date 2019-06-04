@@ -1,4 +1,4 @@
 const config = {
-    baseUrl: 'http://192.168.2.103:3000'
+    baseUrl: 'http://api.lifuwei.club'
 }
 export default config

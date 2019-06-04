@@ -8,14 +8,14 @@
       <div class="scroll-wrapper">
         <el-row>
           <el-col :span="24">
-            <ul class="song-sheet" >
+            <ul class="song-sheet">
                  <Sheet 
-                  v-for="(item, key) in songSheets" 
-                  :key='(item.id+1+key)'
-                  :name="item.name" 
-                  :imgUrl="item.picUrl"
-                  :playCounts="item.playCount"
-                  @itemClick="songSheet(item)" />
+                v-for="(item, key) in songSheets" 
+                :key='(item.id+1+key*2)'
+                 :name="item.name" 
+                 :imgUrl="item.coverImgUrl"
+                 :playCounts="item.playCount"
+                 @itemClick="songSheet(item)" />
             </ul>
           </el-col>
         </el-row>
@@ -32,12 +32,12 @@ import BScroll from "better-scroll"
 import api from "@/config/songApi"
 import { mapMutations } from "vuex"
 export default {
-  name: 'Home',
+  name: 'Raking',
   data () {
     return {
       loading:true,
       songSheets:[],
-      title:'推荐歌单'
+      title:'排行榜'
     }
   },
   components: {
@@ -52,24 +52,21 @@ export default {
     }
   },
   created() {
-   this.title = '推荐歌单'
-    this.$axios.get(api.personalized)
-    .then((response) => {
-      response.data.result.forEach((ele,index) => {
-        if(ele.playCount>10000){
-          ele.playCount = (ele.playCount/10000).toFixed(2) +"万"
-        }
-        this.songSheets.push(ele); 
-      });
-      this.loading = false
-      this.sheetPage.refresh()
-    })
+    this.title = '排行榜'
+      this.$axios.get(api.toplistAll)
+      .then((response) => {
+        response.data.list.forEach((ele,index) => {
+          if(ele.playCount>10000){
+            ele.playCount = (ele.playCount/10000).toFixed(2) +"万"
+          }
+            this.songSheets.push(ele);
+            this.loading = false
+        });
+        this.sheetPage.refresh()
+      })
     this.$nextTick(()=>{
       this._initScroll()
     })
-  },
-  updated(){
-    
   },
   mounted() {},
   methods: {
@@ -82,10 +79,6 @@ export default {
     },
     songSheet(item) {
       this.$router.push({ path: '/play-list-detail', query: { id:item.id ,date:new Date().getTime()}})
-    }
-  },
-  watch:{
-    '$route': function (to, from) {
     }
   }
 }

@@ -1,5 +1,5 @@
 <template>
-  <div class="page-wrapper page-scroll" ref="pageScroll" v-loading.body="loading">
+  <div class="page-wrapper page-scroll" ref="pageScroll">
 		<div class="playList-detail">
 			<div class="player-back" @click='back()'>
 				<i class="fa fa-angle-left" aria-hidden="true"></i>
@@ -7,7 +7,7 @@
 			<div class="player-home" @click='menu()'>
 				<img src="../../assets/svg/menu.svg" alt="" srcset="">
 			</div>
-		<section class="detail-header-wrapper" v-bind:style="{background:`url(${listDatil.coverImgUrl}) center no-repeat`}">
+		<section class="detail-header-wrapper" v-bind:style="{background:`url(${listDatil.coverImgUrl}) center no-repeat `}">
 			<div class="title">{{listDatil.name}}</div>
 			<div class="song-play" @click='addToList'>
 				<!-- <img class="sheet-play" src="../../assets/svg/bofang.svg" alt="" v-if="!(current_sheet === this.$route.query.id)">
@@ -51,22 +51,19 @@
 			<div class="tags"><span v-for="(item,key) in listDatil.tags" :key="key">{{item}}</span></div>
 		</section>
 		<section class="song-list-wrapper">
-			<section class="desc-wrapper">
-				<div class="desc"><img :src="listDatil.coverImgUrl" alt="">简介：{{listDatil.description}}</div>
-				<!-- <div class="detail-img-wrapper">
-					<img :src="listDatil.coverImgUrl" alt="">
-				</div> -->
+			<section>
+				<div class="desc">更新状态：{{listDatil.description}}</div>
 			</section>
 			<ul class="song-list">
 				<listItem 
-						v-for="(item,key) in listDatil.tracks"
-						:key='key'
-						:name="((key+1)+' '+item.name)" 
-						:desc="(item.ar[0].name + item.al.name)" 
-						:currentId="Number(current_song.id)"
-						:itemId="Number(item.id)"
-						:iconType="Number(1)"
-						@itemClick="songPlay(item)"/>
+					v-for="(item,key) in listDatil.tracks"
+					:key='key'
+					:name="((key+1)+' '+item.name)" 
+					:desc="(item.ar[0].name + item.al.name)" 
+					:currentId="Number(current_song.id)"
+					:itemId="Number(item.id)"
+					:iconType="Number(1)"
+					@itemClick="songPlay(item)"/>
 			</ul>
 		</section>
 		</div>
@@ -83,7 +80,6 @@ export default {
   name: 'playListDetail',
   data () {
     return {
-			loading:true,
       listDatil:{}
     }
 	},
@@ -111,11 +107,11 @@ export default {
 		var that = this
 		if(this.$route.query.id){
 			this.$axios.get(`${api.playlistDetail}${this.$route.query.id}`)
-			.then((response) => {
-					if(response.data.code === 200){
-							that.listDatil = response.data.playlist
-							this.loading = false
-					}
+			.then(function (response) {
+				console.log(response)
+				if(response.data.code === 200){
+						that.listDatil = response.data.playlist
+				}
 			})
 		}
 		this.$nextTick(()=>{
@@ -235,7 +231,6 @@ export default {
 		right 0px
 		overflow hidden
 		background-color #ffffff
-		background-size 100% auto
 		&:after
 			content ''
 			position absolute
@@ -293,30 +288,13 @@ export default {
 	.song-list-wrapper
 		width 100%
 		padding-top 400px
-		.desc-wrapper
-			width 100%
-			position relative
-			padding 10px
+		.desc
+			font-size 20px
+			line-height 34px
+			text-align left 
+			color #111
 			box-sizing border-box
-			overflow hidden
-			.desc
-				font-size 20px
-				line-height 34px
-				text-align left 
-				padding-right 5px
-				color #111
-				box-sizing border-box
-				img 
-					width 110px
-					height 110px
-					float left
-					padding 5px 5px 5px 0px
-			// .detail-img-wrapper
-			// 	width 110px
-			// 	height 110px
-			// 	float left
-			// 	overflow hidden
-				
+			padding 15px
 		.song-list
 			width 100%
 			& > li

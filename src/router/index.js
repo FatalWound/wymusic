@@ -3,7 +3,11 @@ import Router from 'vue-router'
 import Home from '@/pages/home/Home'
 import Player from '@/pages/player/Player'
 import playListDetail from '@/pages/playList-detail/playList-detail'
+import topListDetail from '@/pages/toplist-detail/toplist-detail'
+import songerDetail from '@/pages/songer-detail/songer-detail'
 import songSheet from '@/pages/song-sheet/song-sheet'
+import Raking from '@/pages/raking/raking'
+import Songer from '@/pages/songer/songer'
 import About from '@/pages/about/about'
 import Search from '@/pages/search/search'
 import Setting from '@/pages/setting/setting'
@@ -33,7 +37,15 @@ export default new Router({
       name: 'songSheet',
       component: songSheet,
       meta: {
-        keepAlive: false
+        keepAlive: true
+      }
+    },
+    {
+      path: '/raking',
+      name: 'Raking',
+      component: Raking,
+      meta: {
+        keepAlive: true
       }
     },
     {
@@ -45,9 +57,33 @@ export default new Router({
       }
     },
     {
+      path: '/top-list-detail',
+      name: 'topListDetail',
+      component: topListDetail,
+      meta: {
+        keepAlive: false
+      }
+    },
+    {
+      path: '/songer-detail',
+      name: 'songerDetail',
+      component: songerDetail,
+      meta: {
+        keepAlive: false
+      }
+    },
+    {
       path: '/about',
       name: 'About',
       component: About,
+      meta: {
+        keepAlive: true
+      }
+    },
+    {
+      path: '/songer',
+      name: 'Songer',
+      component: Songer,
       meta: {
         keepAlive: true
       }

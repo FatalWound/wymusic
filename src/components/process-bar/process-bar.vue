@@ -49,7 +49,7 @@ export default {
     height 100%
     max-height 4px
     margin 0 auto
-    background-color #ccc
+    background-color #cccccc
     .mini-step
         width 0%
         height 100%

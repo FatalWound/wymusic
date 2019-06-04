@@ -35,7 +35,10 @@ export default {
                 {color:'#CD0000'},
                 {color:'#D15FEE'},
                 {color:'#3D3D3D'},
-                {color:'#0000AA'}
+                {color:'#0000AA'},
+                {color:'#f9ddc7'},
+                {color:'#3c424e'},
+                {color:'#f4bac9'}
             ]
         }
     },

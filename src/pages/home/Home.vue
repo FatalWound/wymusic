@@ -4,7 +4,7 @@
       <mHead :title="'FW音乐站'"/>
     </keep-alive>
     <!-- <div class="scroll" ref="home" :class="[player_status ?'active':'']"> -->
-    <div class="scroll" ref="home" >
+    <div class="scroll" ref="home">
       <div class="scroll-wrapper" >
         <section class="search" @click="toSearch">
           <div class="item" :style="{'border-color':theme_color}">搜索
@@ -12,7 +12,6 @@
           </div>
         </section>
        <!-- silder -->
-       <transition name="custom-classes-transition" enter-active-class="animated zoomIn" leave-active-class="animated zoomOut" mode="out-in">
         <el-row v-if="banners.length > 0">
           <el-col :span="24">
             <swiper :options="swiperOption" ref="mySwiper" class="home-swiper">
@@ -23,10 +22,31 @@
             </swiper>
           </el-col>
         </el-row>
-       </transition>
         <!-- silder -->
+        <!-- 热门歌手 -->
+        <el-row v-if="songSheets.length>0">
+          <el-col :span="24">
+            <h3 class="section-title" :style="{color:theme_color}">热门歌手</h3>
+              <transition-group 
+                appear
+                class="songer-sheet"
+                tag="ul"
+                name="custom-classes-transition" enter-active-class="animated zoomIn faster" leave-active-class="">
+                <songerSheet 
+                  v-for="(item, key) in hotSongers" 
+                 :key='(item.id+1)'
+                 :name="item.name" 
+                 :imgUrl="item.picUrl"
+                  @itemClick="songerSheet(item)"/>
+              </transition-group>
+          </el-col>
+          <el-col :span="24">
+            <div class="more-sheet" @click="moreSonger()" :style="{'border-color':theme_color,color:theme_color}">更多歌手</div>
+          </el-col>
+        </el-row>
+        <!-- 热门歌手 -->
         <!-- 歌单 -->
-        <el-row>
+        <el-row v-if="songSheets.length>0">
           <el-col :span="24">
             <h3 class="section-title" :style="{color:theme_color}">推荐歌单</h3>
               <transition-group 
@@ -34,31 +54,47 @@
                 class="song-sheet"
                 tag="ul"
                 name="custom-classes-transition" enter-active-class="animated zoomIn faster" leave-active-class="">
-                <li  v-for="(item, key) in songSheets" :key='(item.id+1)'>
-                  <div class="sheet-item" @click="songSheet(item)">
-                    <div class="sheet-img">
-                      <img :src="item.picUrl" alt="" srcset="">
-                      <span class="play-count">
-                        <i class="fa fa-headphones" aria-hidden="true"></i>
-                        {{item.playCount}}次
-                      </span>
-                    </div>
-                    <div class="sheet-name">
-                      {{item.name}}
-                    </div>
-                  </div>
-                </li>
+                 <Sheet 
+                 v-for="(item, key) in songSheets" 
+                 :key='(item.id+1+key)'
+                 :name="item.name" 
+                 :imgUrl="item.picUrl"
+                 :playCounts="item.playCount | counts"
+                 @itemClick="songSheet(item)" />
               </transition-group>
           </el-col>
           <el-col :span="24">
-            <div class="more-sheet" @click="moreSheet" :style="{'border-color':theme_color,color:theme_color}">更多歌单</div>
+            <div class="more-sheet" @click="moreList()" :style="{'border-color':theme_color,color:theme_color}">更多歌单</div>
           </el-col>
         </el-row>
         <!-- 歌单 -->
-        <!-- 新歌 -->
-        <el-row>
+        <!-- 排行榜 -->
+        <el-row v-if="toplistSheets.length>0">
           <el-col :span="24">
-            <h3 class="section-title" :style="{'border-color':theme_color,color:theme_color}">最新音乐</h3>
+            <h3 class="section-title" :style="{color:theme_color}">榜单摘要</h3>
+              <transition-group 
+                appear
+                class="song-sheet"
+                tag="ul"
+                name="custom-classes-transition" enter-active-class="animated zoomIn faster" leave-active-class="">
+                <Sheet 
+                v-for="(item, key) in toplistSheets" 
+                :key='(item.id+1+key)'
+                 :name="item.name" 
+                 :imgUrl="item.coverImgUrl"
+                 :playCounts="item.playCount"
+                 @itemClick="songSheet(item)" />
+              </transition-group>
+          </el-col>
+          <el-col :span="24">
+            <div class="more-sheet" @click="moreTopList()" :style="{'border-color':theme_color,color:theme_color}">更多榜单</div>
+          </el-col>
+        </el-row>
+        <!-- 排行榜 -->
+        <!-- 新歌 -->
+        <el-row v-if="newSongs.length>0">
+          <el-col :span="24">
+            <h3 class="section-title" :style="{'border-color':theme_color,color:theme_color}">云音乐赞赏榜</h3>
               <transition-group 
                 appear
                 class="song-list"
@@ -66,11 +102,11 @@
                 name="custom-classes-transition" enter-active-class="animated zoomIn faster" leave-active-class="">
                   <listItem 
                   v-for="(item,key) in newSongs" 
-                  :key='(item.song.id+1)'
+                  :key='(item.id+1+key)'
                   :name="((key+1)+' '+item.name)" 
-                  :desc="item.song.album.name" 
+                  :desc="item.artists | conutArtist" 
                   :currentId="Number(current_song.id)"
-                  :itemId="Number(item.song.id)"
+                  :itemId="Number(item.id)"
                   :iconType="Number(1)"
                   @itemClick="songPlay(item)"/>
               </transition-group>
@@ -83,309 +119,299 @@
 </template>
 
 <script>
-import mHead from '@/components/head/Head'
-import listItem from "@/components/list-item/list-item"
-import commonApi from '@/axios/request'
-import musicUtil from '@/util/musicTool'
-import { mapMutations, mapActions } from "vuex"
-import BScroll from "better-scroll"
+import mHead from "@/components/head/Head";
+import listItem from "@/components/list-item/list-item";
+import Sheet from "@/components/song-sheet/song-sheet";
+import songerSheet from "@/components/song-sheet/songer-sheet";
+import commonApi from "@/axios/request";
+import api from "@/config/songApi";
+import musicUtil from "@/util/musicTool";
+import { mapMutations, mapActions } from "vuex";
+import BScroll from "better-scroll";
 export default {
-  name: 'Home',
-  data () {
+  name: "Home",
+  data() {
     return {
-      banners:[],
-      songSheets:[],
-      newSongs:[],
+      banners: [],
+      hotSongers:[],
+      songSheets: [],
+      toplistSheets: [],
+      newSongs: [],
       swiperOption: {
         autoplay: true,
         speed: 1000,
-        loop:true,
+        loop: true,
         pagination: {
-          el: '.swiper-pagination',
-        },
+          el: ".swiper-pagination"
+        }
       }
-    }
+    };
   },
   components: {
-    mHead,listItem
+    mHead,
+    listItem,
+    Sheet,
+    songerSheet
   },
   computed: {
     swiper() {
-      return this.$refs.mySwiper.swiper
+      return this.$refs.mySwiper.swiper;
     },
     theme_color() {
-      return this.$store.state.theme.theme_color ? this.$store.state.theme.theme_color : '#954dcc'
+      return this.$store.state.theme.theme_color
+        ? this.$store.state.theme.theme_color
+        : "#954dcc";
     },
     player_status() {
-      return this.$store.state.player.player_status ? this.$store.state.player.player_status : false
+      return this.$store.state.player.player_status
+        ? this.$store.state.player.player_status
+        : false;
     },
-    current_song () {
-      return this.$store.state.player.current_song
+    current_song() {
+      return this.$store.state.player.current_song;
     },
-    current_list () {
-      return this.$store.state.player.current_list
+    current_list() {
+      return this.$store.state.player.current_list;
+    }
+  },
+  filters:{
+    counts(val){
+      return (val / 10000).toFixed(2) + "万";
+    },
+    conutArtist(val){
+      let arr = []
+      val.forEach((item,key)=>{
+        arr.push(item.name)
+      })
+      return arr.join(' / ')
     }
   },
   created() {
     const that = this;
     // this.swiper.slideTo(3, 1000, false)
-    this.$axios.get('/banner')
-    .then(function (response) {
-      that.banners =  response.data.banners;
-      that.swiper.update()
-    })
-    this.$axios.get('/personalized')
-    .then(function (response) {
+    this.$axios.get(api.banner).then((response) => {
+      that.banners = response.data.banners;
+      that.swiper.update();
+    });
+    // 推荐歌单
+    this.$axios.get(api.personalized).then((response) => {
+
       // 裁剪，只需要6条信息
-      response.data.result.forEach((ele,index) => {
-        if(index < 6){
-          if(ele.playCount>10000){
-             ele.playCount = (ele.playCount/10000).toFixed(2) +"万"
-          }
-           that.songSheets.push(ele);
+      response.data.result.forEach((ele, index) => {
+        if (index < 6) {
+          that.songSheets.push(ele);
         }
       });
-    })
-    this.$axios.get('/personalized/newsong')
-    .then(function (response) {
+    });
+    // 摘要榜单
+    this.$axios.get(api.toplistAllDetail).then((response) => {
       // 裁剪，只需要15条信息
-      response.data.result.forEach((ele,index) => {
-        if(index < 15){
-          that.newSongs.push(ele);
+      response.data.list.forEach((ele, index) => {
+        if (index < 6) {
+          // that.newSongs.push(ele);
+          that.toplistSheets.push(ele);
         }
       });
-    })
-    this.$nextTick(()=>{
-      this._initScroll()
-    })
+       that.newSongs = response.data.rewardToplist.songs
+    });
+    this.$axios.get(`${api.hotArtists}?offset=0&limit=8`).then((response) => {
+      // 裁剪，只需要15条信息
+      response.data.artists.forEach((ele, index) => {
+        if (index < 15) {
+          that.hotSongers.push(ele);
+        }
+      });
+      
+    });
+    this.$nextTick(() => {
+      this._initScroll();
+    });
   },
-  mounted() {
-    
-  },
+  mounted() {},
   methods: {
-    ...mapMutations(["SET_CURRENT_SONG","PUSH_CURRENT_LISTS","SET_PLAYER_SATATUS","PLAY","SET_THEME_COLOR","RESET"]),
-    ...mapActions(['A_PLAY']),
+    ...mapMutations([
+      "SET_CURRENT_SONG",
+      "PUSH_CURRENT_LISTS",
+      "SET_PLAYER_SATATUS",
+      "PLAY",
+      "SET_THEME_COLOR",
+      "RESET"
+    ]),
+    ...mapActions(["A_PLAY"]),
     _initScroll() {
-      this.homePage = new BScroll(this.$refs.home,{
+      this.homePage = new BScroll(this.$refs.home, {
         //开启点击事件 默认为false
-        click:true
-      })
+        click: true
+      });
     },
-    swiperItem(item){
-      console.log(item)
+    swiperItem(item) {
+      console.log(item);
     },
     songSheet(item) {
-      this.$router.push({ path: '/play-list-detail', query: { id:item.id ,date:new Date().getTime()}})
+      this.$router.push({
+        path: "/play-list-detail",
+        query: { id: item.id,date: new Date().getTime() }
+      });
     },
-    moreSheet(){
-      this.$router.push({ path: '/song-sheet'})
+    songerSheet(item){
+      this.$router.push({
+        path: "/songer-detail",
+        query: { id: item.id,date: new Date().getTime() }
+      });
     },
-    songPlay(item){
-      commonApi.songPlay(item,this)
+    topList(item){
+      this.$router.push({
+        path: "/play-list-detail",
+        query: { id: item.id, date: new Date().getTime() }
+      });
     },
-    distContorl(){
-      if(this.$player.paused){
-        this.$player.play()
-        this.SET_PLAYER_SATATUS(!this.$player.paused)
-      }else{
-        this.$player.pause()
-        this.SET_PLAYER_SATATUS(!this.$player.paused)
+    moreTopList(){
+      this.$router.push({path: "/raking"});
+    },
+    moreList() {
+      this.$router.push({ path: "/song-sheet"});
+    },
+    moreSonger(){
+      this.$router.push({ path: "/songer"});
+    },
+    songPlay(item) {
+      commonApi.songPlay(item, this);
+    },
+    distContorl() {
+      if (this.$player.paused) {
+        this.$player.play();
+        this.SET_PLAYER_SATATUS(!this.$player.paused);
+      } else {
+        this.$player.pause();
+        this.SET_PLAYER_SATATUS(!this.$player.paused);
       }
-      
     },
-    toSearch(){
-      this.$router.push({path:'/search'})
+    toSearch() {
+      this.$router.push({ path: "/search" });
     }
   }
-}
+};
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang='stylus'>
-@import url('../../assets/css/animate.css')
-.home
-  width 100%
-  margin 0 auto
-  max-height 100%
-  .scroll
-    width 100%
-    margin 0 auto
-    position fixed
-    top 75px
-    left 0
-    right 0
-    bottom 100px
-    overflow hidden
-    .scroll-wrapper
-      overflow hidden 
-.search
-  width 100%
-  box-sizing border-box
-  overflow hidden
-  padding 15px 18px
-  overflow hidden
-  .item
-    height 60px
-    line-height 60px
-    padding 0 20px
-    color #333
-    font-size 26px
-    box-sizing border-box
-    border 1px solid #954dcc
-    border-radius 15px
-    position relative
-    overflow hidden
-    .fa-search
-      width 100px
-      height 60px
-      color #ffffff
-      font-size 30px
-      text-align center
-      line-height 60px
-      position absolute
-      top 0px
-      right 0px
-      overflow hidden
-.stylus
-  color #451378
-  font-size 20px
-.home-swiper
-  width 100%
-  margin 0 auto
-  text-align center
-  .swiper-slide
-    width 100%
-    min-height 280px
-    overflow hidden
-    img 
-      max-width 100%
-.section-title
-  width 100%
-  height 80px
-  line-height 80px
-  font-size 26px
-  color #954DCC
-  text-align left 
-  text-indent 10px
-  overflow hidden
-.song-sheet
+@import url('../../assets/css/animate.css');
+.home {
+  width: 100%;
+  margin: 0 auto;
+  max-height: 100%;
+  .scroll {
+    width: 100%;
+    margin: 0 auto;
+    position: fixed;
+    top: 75px;
+    left: 0;
+    right: 0;
+    bottom: 100px;
+    overflow: hidden;
+
+    .scroll-wrapper {
+      overflow: hidden;
+    }
+  }
+}
+
+.search {
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  padding: 15px 18px;
+  overflow: hidden;
+
+  .item {
+    height: 60px;
+    line-height: 60px;
+    padding: 0 20px;
+    color: #333;
+    font-size: 26px;
+    box-sizing: border-box;
+    border: 1px solid #954dcc;
+    border-radius: 15px;
+    position: relative;
+    overflow: hidden;
+
+    .fa-search {
+      width: 100px;
+      height: 60px;
+      color: #ffffff;
+      font-size: 30px;
+      text-align: center;
+      line-height: 60px;
+      position: absolute;
+      top: 0px;
+      right: 0px;
+      overflow: hidden;
+    }
+  }
+}
+// .border-radius{
+//   border-radius:100%
+// }
+
+.stylus {
+  color: #451378;
+  font-size: 20px;
+}
+
+.home-swiper {
+  width: 100%;
+  margin: 0 auto;
+  text-align: center;
+
+  .swiper-slide {
+    width: 100%;
+    min-height: 280px;
+    overflow: hidden;
+
+    img {
+      max-width: 100%;
+    }
+  }
+}
+
+.songer-sheet{
   width 100%
   box-sizing border-box
   list-style none
   font-size 0
   overflow hidden
-  box-sizing border-box
-  & li
-    width 33.33%
-    box-sizing border-box
-    padding 5px
-    float left
-    .sheet-item
-      width 100%
-      height 260px
-      overflow hidden
-      box-sizing border-box
-      .sheet-img
-        display block
-        width 100%
-        height 200px
-        overflow hidden
-        background-color #ddd
-        position relative
-        .play-count
-          position absolute
-          bottom 5px
-          right 5px
-          font-size 24px
-          color #ffffff
-        img 
-          max-width 100%
-      .sheet-name
-        width 100%
-        height 60px
-        line-height 28px
-        overflow hidden
-        color #000000
-        font-size 20px
-        text-align left 
-        margin-top 5px
-.more-sheet
-  width 180px
-  height 50px
-  line-height 50px
-  text-align center 
-  font-size 26px
-  color #954dcc
-  margin 15px auto 
-  border 1px solid #954dcc
-  border-radius 15px
-.song-list
-  width 100%
-  & > li
-    width 100%
-    box-sizing border-box
-    padding 0 5px
-    position relative
-    .song-item
-      width 100%
-      height 100px
-      display flex
-      position relative
-      .item-icon
-        flex 0 0 80px
-        width 80px
-        height 100%
-        line-height 100px
-        text-align center 
-        font-size 42px
-        color #954DCC
-      .item-desc
-        flex 1
-        height 100px
-        box-sizing border-box
-        padding-left 10px
-        padding-right 85px
-        overflow hidden
-        position relative
-        border-bottom 1px solid #ddd
-        // &:before
-        //   display block
-        //   content ''
-        //   width 100%
-        //   height 1px
-        //   transform scaleY(0.5)
-        //   position absolute
-        //   top 0
-        //   left 0
-        //   background-color #ddd
-        .song-name
-          width 100%
-          height 35px
-          line-height 35px
-          font-size 26px
-          color #000000
-          text-align left
-          margin-top 12px
-          overflow hidden
-        .song-desc
-          width 100%
-          height 35px
-          line-height 35px
-          font-size 18px
-          color #ccc
-          text-align left
-          margin-top 8px
-          overflow hidden
-      .song-play
-        width 80px
-        line-height 100px
-        text-align center 
-        font-size 42px
-        color #ddd
-        position absolute
-        top 0
-        right 0
-        bottom 0
-.homeactive
-  width 600px
+  padding 5px 0
+}
+
+.section-title {
+  width: 100%;
+  height: 80px;
+  line-height: 80px;
+  font-size: 26px;
+  color: #954DCC;
+  text-align: left;
+  text-indent: 10px;
+  overflow: hidden;
+}
+
+
+.more-sheet {
+  width: 180px;
+  height: 50px;
+  line-height: 50px;
+  text-align: center;
+  font-size: 26px;
+  color: #954dcc;
+  margin: 15px auto;
+  border: 1px solid #954dcc;
+  border-radius: 15px;
+}
+
+.song-list {
+  width: 100%;
+}
+
+.homeactive {
+  width: 600px;
+}
 </style>

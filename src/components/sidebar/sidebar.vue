@@ -8,6 +8,21 @@
                 <div class="item-content">首页</div>
                 <!-- <div class="item-arrow"><i class="fa fa-angle-right" aria-hidden="true"></i></div> -->
             </li>
+            <li class="item" @click="itemClick(14)">
+                <div class="item-icon"><i class="fa fa-group" aria-hidden="true"></i></div>
+                <div class="item-content">歌手</div>
+                <div class="item-arrow"></div>
+            </li>
+            <li class="item" @click="itemClick(15)">
+                <div class="item-icon"><i class="fa fa-list-ul" aria-hidden="true"></i></div>
+                <div class="item-content">更多推荐歌单</div>
+                <div class="item-arrow"></div>
+            </li>
+            <li class="item" @click="itemClick(16)">
+                <div class="item-icon"><i class="fa fa-star-half-o" aria-hidden="true"></i></div>
+                <div class="item-content">排行榜</div>
+                <div class="item-arrow"></div>
+            </li>
             <li class="item" @click="itemClick(17)">
                 <div class="item-icon"><i class="fa fa-search" aria-hidden="true"></i></div>
                 <div class="item-content">搜索</div>
@@ -67,6 +82,21 @@ export default {
             switch (num) {
                 case 0:
                     this.$router.push({path:'/'});
+                    this.TOGGLE_SIDEBAR(false)
+                    break;
+                case 14:
+                    // 歌手
+                    this.$router.push({ path: "/songer"})
+                    this.TOGGLE_SIDEBAR(false)
+                    break;
+                case 15:
+                    // 推荐歌单
+                    this.$router.push({ path: "/song-sheet"})
+                    this.TOGGLE_SIDEBAR(false)
+                    break;
+                case 16:
+                    // 排行榜
+                    this.$router.push({path: "/raking"})
                     this.TOGGLE_SIDEBAR(false)
                     break;
                 case 17:
