@@ -1,4 +1,4 @@
-# fw_music
+# wy_music
 
 > 利用网易api做的一个音乐播放器
 
